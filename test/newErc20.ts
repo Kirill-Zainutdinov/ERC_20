@@ -1,10 +1,8 @@
-import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { BigNumber } from "ethers";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { ERC20, ERC20__factory } from "../typechain-types";
+
 
 describe("Testing ERC20",  function () {
 
@@ -12,12 +10,12 @@ describe("Testing ERC20",  function () {
         const name = "TestToken"
         const symbol = "TT"
         const decimals = 18
-        const [owner, account_1, account_2, hacker] = await ethers.getSigners()
+        const [owner, account, hacker] = await ethers.getSigners()
     
         const ERC20 = await ethers.getContractFactory("ERC20")
         const erc20 = await ERC20.deploy(name, symbol, decimals)
     
-        return { erc20, name, symbol, decimals, owner, account_1, account_2, hacker }
+        return { erc20, name, symbol, decimals, owner, account, hacker }
     }
 
     describe("Deployment", function () {
@@ -60,25 +58,25 @@ describe("Testing ERC20",  function () {
 
         describe("Mint", function () {
             it("Check that token emission correctly changes the balance of the account", async function () {
-                const { erc20, account_1, decimals} = await loadFixture(deployErc20)
+                const { erc20, account, decimals} = await loadFixture(deployErc20)
     
-                const balanceBeforeMint = await erc20.balanceOf(account_1.address)
+                const balanceBeforeMint = await erc20.balanceOf(account.address)
                 const tokenEmission = BigNumber.from(10).pow(decimals)
     
-                const tx = await erc20.mint(account_1.address, tokenEmission)
+                const tx = await erc20.mint(account.address, tokenEmission)
                 await tx.wait()
     
-                expect(await erc20.balanceOf(account_1.address))
+                expect(await erc20.balanceOf(account.address))
                 .to.equal(balanceBeforeMint.add(tokenEmission))
             })
     
             it("Check that token emission correctly changes the totalSupply", async function () {
-                const { erc20, account_1, decimals} = await loadFixture(deployErc20)
+                const { erc20, account, decimals} = await loadFixture(deployErc20)
     
                 const totalSupplyBeforeMint = await erc20.totalSupply()
                 const tokenEmission = BigNumber.from(10).pow(decimals)
     
-                const tx = await erc20.mint(account_1.address, tokenEmission)
+                const tx = await erc20.mint(account.address, tokenEmission)
                 await tx.wait()
     
                 expect(await erc20.totalSupply())
@@ -88,14 +86,14 @@ describe("Testing ERC20",  function () {
 
         describe("Event", function () {
             it("Check emit an event on Transfer", async function () {
-                const { erc20, account_1, decimals} = await loadFixture(deployErc20)
+                const { erc20, account, decimals} = await loadFixture(deployErc20)
     
                 const tokenEmission = BigNumber.from(10).pow(decimals)
                 const zeroAddress = "0x0000000000000000000000000000000000000000"
 
-                await expect(erc20.mint(account_1.address, tokenEmission))
+                await expect(erc20.mint(account.address, tokenEmission))
                     .to.emit(erc20, "Transfer")
-                    .withArgs(zeroAddress, account_1.address, tokenEmission)
+                    .withArgs(zeroAddress, account.address, tokenEmission)
             })
         })
     })
@@ -104,15 +102,15 @@ describe("Testing ERC20",  function () {
 
         describe("Approve", function () {
             it("Check that the function approve works correctly", async function () {
-                const { erc20, decimals, owner, account_1} = await loadFixture(deployErc20)
+                const { erc20, decimals, owner, account} = await loadFixture(deployErc20)
     
-                const allowanceBeforeApprove = await erc20.allowance(owner.address, account_1.address)
+                const allowanceBeforeApprove = await erc20.allowance(owner.address, account.address)
                 const tokenApprove = BigNumber.from(10).pow(decimals)
     
-                const tx = await erc20.approve(account_1.address, tokenApprove)
+                const tx = await erc20.approve(account.address, tokenApprove)
                 await tx.wait()
     
-                expect(await erc20.allowance(owner.address, account_1.address))
+                expect(await erc20.allowance(owner.address, account.address))
                 .to.equal(allowanceBeforeApprove.add(tokenApprove))
             })
     
@@ -120,13 +118,13 @@ describe("Testing ERC20",  function () {
 
         describe("Event", function () {
             it("Check emit an event on Approval", async function () {
-                const { erc20, owner, account_1, decimals} = await loadFixture(deployErc20)
+                const { erc20, owner, account, decimals} = await loadFixture(deployErc20)
     
                 const tokenApprove = BigNumber.from(10).pow(decimals)
 
-                await expect(erc20.approve(account_1.address, tokenApprove))
+                await expect(erc20.approve(account.address, tokenApprove))
                     .to.emit(erc20, "Approval")
-                    .withArgs(owner.address, account_1.address, tokenApprove)
+                    .withArgs(owner.address, account.address, tokenApprove)
             })
         })
     })
@@ -151,7 +149,7 @@ describe("Testing ERC20",  function () {
 
         describe("Transfer", function () {
             it("Check that the function transfer works correctly", async function () {
-                const { erc20, owner, account_1, account_2, decimals} = await loadFixture(deployErc20)
+                const { erc20, owner, account, decimals} = await loadFixture(deployErc20)
     
                 const tokenEmission = BigNumber.from(10).pow(decimals)
     
@@ -160,9 +158,9 @@ describe("Testing ERC20",  function () {
 
                 const ownerBalance = await erc20.balanceOf(owner.address)
 
-                await expect(erc20.transfer(account_1.address, ownerBalance)).to.changeTokenBalances(
+                await expect(erc20.transfer(account.address, ownerBalance)).to.changeTokenBalances(
                     erc20,
-                    [owner.address, account_1.address],
+                    [owner.address, account.address],
                     [ownerBalance.mul(-1), ownerBalance]
                 )
             })
@@ -170,7 +168,7 @@ describe("Testing ERC20",  function () {
 
         describe("Event", function () {
             it("Check emit an event on Transfer", async function () {
-                const { erc20, owner, account_1, decimals} = await loadFixture(deployErc20)
+                const { erc20, owner, account, decimals} = await loadFixture(deployErc20)
     
                 const tokenEmission = BigNumber.from(10).pow(decimals)
 
@@ -179,9 +177,9 @@ describe("Testing ERC20",  function () {
 
                 const ownerBalance = await erc20.balanceOf(owner.address)
 
-                await expect(erc20.transfer(account_1.address, ownerBalance))
+                await expect(erc20.transfer(account.address, ownerBalance))
                     .to.emit(erc20, "Transfer")
-                    .withArgs(owner.address, account_1.address, ownerBalance)
+                    .withArgs(owner.address, account.address, ownerBalance)
             })
         })
     })
@@ -213,7 +211,7 @@ describe("Testing ERC20",  function () {
 
                 const ownerBalance = await erc20.balanceOf(owner.address)
 
-                tx = await erc20.approve(hacker.address, ownerBalance.sub(2))
+                tx = await erc20.approve(hacker.address, ownerBalance.sub(1))
                 await tx.wait()
 
                 await expect(
@@ -224,7 +222,7 @@ describe("Testing ERC20",  function () {
 
         describe("TransferFrom", function () {
             it("Check that the balances of accounts in the transfer are changed correctly", async function () {
-                const { erc20, owner, account_1, account_2, decimals} = await loadFixture(deployErc20)
+                const { erc20, owner, account, decimals} = await loadFixture(deployErc20)
     
                 const tokenEmission = BigNumber.from(10).pow(decimals)
     
@@ -233,19 +231,19 @@ describe("Testing ERC20",  function () {
 
                 const ownerBalance = await erc20.balanceOf(owner.address)
 
-                tx = await erc20.approve(account_1.address, ownerBalance)
+                tx = await erc20.approve(account.address, ownerBalance)
                 await tx.wait()
 
-                await expect(erc20.connect(account_1).transferFrom(owner.address, account_1.address, ownerBalance))
+                await expect(erc20.connect(account).transferFrom(owner.address, account.address, ownerBalance))
                 .to.changeTokenBalances(
                     erc20,
-                    [owner.address, account_1.address],
+                    [owner.address, account.address],
                     [ownerBalance.mul(-1), ownerBalance]
                 )
             })
 
             it("Check that the allowance of accounts in the transfer are changed correctly", async function () {
-                const { erc20, owner, account_1, account_2, decimals} = await loadFixture(deployErc20)
+                const { erc20, owner, account, decimals} = await loadFixture(deployErc20)
     
                 const tokenEmission = BigNumber.from(10).pow(decimals)
     
@@ -254,22 +252,22 @@ describe("Testing ERC20",  function () {
 
                 const ownerBalance = await erc20.balanceOf(owner.address)
 
-                tx = await erc20.approve(account_1.address, ownerBalance)
+                tx = await erc20.approve(account.address, ownerBalance)
                 await tx.wait()
 
-                const allowanceBeforeTransfer = await erc20.allowance(owner.address, account_1.address)
+                const allowanceBeforeTransfer = await erc20.allowance(owner.address, account.address)
 
-                tx = await erc20.connect(account_1).transferFrom(owner.address, account_1.address, ownerBalance)
+                tx = await erc20.connect(account).transferFrom(owner.address, account.address, ownerBalance)
                 await tx.wait()
 
-                expect(await erc20.allowance(owner.address, account_1.address))
+                expect(await erc20.allowance(owner.address, account.address))
                 .to.equal(allowanceBeforeTransfer.sub(ownerBalance))
             })
         })
 
-        describe("Event", function () {
+        describe("Events", function () {
             it("Check emit an event on Transfer", async function () {
-                const { erc20, owner, account_1, account_2, decimals} = await loadFixture(deployErc20)
+                const { erc20, owner, account, decimals} = await loadFixture(deployErc20)
     
                 const tokenEmission = BigNumber.from(10).pow(decimals)
     
@@ -278,16 +276,16 @@ describe("Testing ERC20",  function () {
 
                 const ownerBalance = await erc20.balanceOf(owner.address)
 
-                tx = await erc20.approve(account_1.address, ownerBalance)
+                tx = await erc20.approve(account.address, ownerBalance)
                 await tx.wait()
 
-                await expect(erc20.connect(account_1).transferFrom(owner.address, account_1.address, ownerBalance))
+                await expect(erc20.connect(account).transferFrom(owner.address, account.address, ownerBalance))
                     .to.emit(erc20, "Transfer")
-                    .withArgs(owner.address, account_1.address, ownerBalance)
+                    .withArgs(owner.address, account.address, ownerBalance)
             })
 
             it("Check emit an event on Approval", async function () {
-                const { erc20, owner, account_1, account_2, decimals} = await loadFixture(deployErc20)
+                const { erc20, owner, account, decimals} = await loadFixture(deployErc20)
     
                 const tokenEmission = BigNumber.from(10).pow(decimals)
     
@@ -296,14 +294,14 @@ describe("Testing ERC20",  function () {
 
                 const ownerBalance = await erc20.balanceOf(owner.address)
 
-                tx = await erc20.approve(account_1.address, ownerBalance)
+                tx = await erc20.approve(account.address, ownerBalance)
                 await tx.wait()
 
-                const allowanceBeforeTransfer = await erc20.allowance(owner.address, account_1.address)
+                const allowanceBeforeTransfer = await erc20.allowance(owner.address, account.address)
 
-                await expect(erc20.connect(account_1).transferFrom(owner.address, account_1.address, ownerBalance))
+                await expect(erc20.connect(account).transferFrom(owner.address, account.address, ownerBalance))
                     .to.emit(erc20, "Approval")
-                    .withArgs(owner.address, account_1.address, allowanceBeforeTransfer.sub(ownerBalance))
+                    .withArgs(owner.address, account.address, allowanceBeforeTransfer.sub(ownerBalance))
             })
         })
     })
