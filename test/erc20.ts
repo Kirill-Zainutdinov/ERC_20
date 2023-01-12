@@ -41,7 +41,7 @@ describe("Testing ERC20",  function () {
         it("Check that the token totalSupply is set correctly", async function () {
             const { erc20 } = await loadFixture(deployErc20)
 
-            expect(await erc20.totalSupply()).to.equal(0);
+            expect(await erc20.totalSupply()).to.equal(0)
         })
     })
 
@@ -52,7 +52,7 @@ describe("Testing ERC20",  function () {
     
                 await expect(
                     erc20.connect(hacker).mint(hacker.address, BigNumber.from(10).pow(decimals))
-                ).to.be.revertedWith("ERC20: You are not owner");
+                ).to.be.revertedWith("ERC20: You are not owner")
             })
         })
 
