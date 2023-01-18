@@ -60,14 +60,10 @@ describe("Testing ERC20",  function () {
             it("Check that token emission correctly changes the balance of the account", async function () {
                 const { erc20, account, decimals} = await loadFixture(deployErc20)
     
-                const balanceBeforeMint = await erc20.balanceOf(account.address)
                 const tokenEmission = BigNumber.from(10).pow(decimals)
     
-                const tx = await erc20.mint(account.address, tokenEmission)
-                await tx.wait()
-    
-                expect(await erc20.balanceOf(account.address))
-                .to.equal(balanceBeforeMint.add(tokenEmission))
+                await expect(erc20.mint(account.address, tokenEmission))
+                .to.changeTokenBalance(erc20, account.address, tokenEmission)
             })
     
             it("Check that token emission correctly changes the totalSupply", async function () {
@@ -156,12 +152,10 @@ describe("Testing ERC20",  function () {
                 const tx = await erc20.mint(owner.address, tokenEmission)
                 await tx.wait()
 
-                const ownerBalance = await erc20.balanceOf(owner.address)
-
-                await expect(erc20.transfer(account.address, ownerBalance)).to.changeTokenBalances(
+                await expect(erc20.transfer(account.address, tokenEmission)).to.changeTokenBalances(
                     erc20,
                     [owner.address, account.address],
-                    [ownerBalance.mul(-1), ownerBalance]
+                    [tokenEmission.mul(-1), tokenEmission]
                 )
             })
         })
@@ -229,16 +223,14 @@ describe("Testing ERC20",  function () {
                 let tx = await erc20.mint(owner.address, tokenEmission)
                 await tx.wait()
 
-                const ownerBalance = await erc20.balanceOf(owner.address)
-
-                tx = await erc20.approve(account.address, ownerBalance)
+                tx = await erc20.approve(account.address, tokenEmission)
                 await tx.wait()
 
-                await expect(erc20.connect(account).transferFrom(owner.address, account.address, ownerBalance))
+                await expect(erc20.connect(account).transferFrom(owner.address, account.address, tokenEmission))
                 .to.changeTokenBalances(
                     erc20,
                     [owner.address, account.address],
-                    [ownerBalance.mul(-1), ownerBalance]
+                    [tokenEmission.mul(-1), tokenEmission]
                 )
             })
 
